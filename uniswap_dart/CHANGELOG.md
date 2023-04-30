@@ -1,3 +1,3 @@
 ## 0.0.1
 
-* TODO: Describe initial release.
+* UPDATE: Uniswap in Flutter unofficial package to do transactions without so much code using uniswap router.
