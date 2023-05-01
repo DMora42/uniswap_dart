@@ -66,7 +66,8 @@ class Uniswap {
       final DeployedContract routerContract =
           DeployedContract(routerAbi, routerAddress);
       final function = routerContract.function('swapExactETHForTokens');
-      final BigInt payableAmount = await getAmountsOut();
+      final BigInt payableAmount =
+          await getAmountsOut(token: tokenOut, val: tokenAmount);
       print('Running: swapExactETHForTokens');
       final result = await provider.sendTransaction(
         EthPrivateKey.fromHex(credentials),
