@@ -10,8 +10,8 @@ Future<BigInt> getAmountsOut(
         'https://api.bitstack.com/v1/wNFxbiJyQsSeLrX8RRCHi7NpRxrlErZk/DjShIqLishPCTB9HiMkPHXjUM9CNM9Na/ETH/mainnet',
     String router = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
     String token = '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
-    String tokenOut = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'}) async {
-  final Token = token;
+    String tokenOut = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+    num val = 1}) async {
   final httpClient = Client();
   final ethClient = Web3Client(rpc, httpClient);
   final contract = DeployedContract(
@@ -20,8 +20,8 @@ Future<BigInt> getAmountsOut(
       contract: contract,
       function: contract.function('getAmountsOut'),
       params: [
-        (BigInt.from(10) ^ BigInt.from(18)),
-        [EthereumAddress.fromHex(Token), EthereumAddress.fromHex(tokenOut)]
+        (BigInt.from(val) * BigInt.from(10).pow(18)),
+        [EthereumAddress.fromHex(token), EthereumAddress.fromHex(tokenOut)]
       ]);
   if (result.isNotEmpty && result[0].length > 1) {
     final etherValueBigInt = result[0][1];
@@ -32,15 +32,26 @@ Future<BigInt> getAmountsOut(
   }
 }
 
+BigInt convertToBigInt(num value) {
+  if (value is int) {
+    return BigInt.from(value) * BigInt.from(10).pow(18);
+  } else if (value is double) {
+    BigInt pres = BigInt.from(10).pow(18);
+    return BigInt.from((value * pres.toInt()));
+  } else {
+    throw ArgumentError('Value must be an int or a double');
+  }
+}
+
 //Future<String> swapETHForExactTokens() async {}
 
-Future<String> swapExactETHForTokens(String credentials, num ethAmount,
+Future<String> swapExactETHForTokens(String credentials, num tokenAmount,
     String tokenOut, String recipient, int timestamp) async {
   try {
     final String rpc =
-        'https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161';
-    final String eth = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
-    final amountOutMin = await getAmountsOut();
+        'https://api.bitstack.com/v1/wNFxbiJyQsSeLrX8RRCHi7NpRxrlErZk/DjShIqLishPCTB9HiMkPHXjUM9CNM9Na/ETH/mainnet';
+    final String eth = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
+    final amountOutMin = convertToBigInt(tokenAmount);
     final List path = [
       EthereumAddress.fromHex(eth),
       EthereumAddress.fromHex(tokenOut)
@@ -54,7 +65,7 @@ Future<String> swapExactETHForTokens(String credentials, num ethAmount,
     final DeployedContract routerContract =
         DeployedContract(routerAbi, routerAddress);
     final function = routerContract.function('swapExactETHForTokens');
-    final BigInt payableAmount = BigInt.from(ethAmount).pow(18);
+    final BigInt payableAmount = await getAmountsOut();
     print('Running: swapExactETHForTokens');
     final result = await provider.sendTransaction(
       EthPrivateKey.fromHex(credentials),
@@ -67,9 +78,9 @@ Future<String> swapExactETHForTokens(String credentials, num ethAmount,
           to,
           deadline,
         ],
-        value: EtherAmount.inWei(amountOutMin),
+        value: EtherAmount.inWei(payableAmount),
       ),
-      chainId: 5,
+      chainId: 1,
     );
     print('Success: swapExactETHForTokens');
     return result;
