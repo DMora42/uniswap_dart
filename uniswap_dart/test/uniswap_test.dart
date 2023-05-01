@@ -12,5 +12,5 @@ void main() async {
   final deadline =
       DateTime.now().add(const Duration(minutes: 10)).millisecondsSinceEpoch ~/
           1000;
-  await swapExactETHForTokens(credentials, payableAmount, tokenOut, recipient, deadline);
+  await Uniswap().swapExactETHForTokens(credentials, payableAmount, tokenOut, recipient, deadline);
 }
